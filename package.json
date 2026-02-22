@@ -1,0 +1,10 @@
+{
+  "name": "codecast",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"cd server && npm start\" \"cd client && npm run start:front\""
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
