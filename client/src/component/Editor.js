@@ -44,20 +44,21 @@ function Editor({ socketRef, roomId, onCodeChange }) {
         };
 
         init();
-    }, []);
+    }, [onCodeChange, roomId, socketRef]);
 
     useEffect(() => {
-        if (socketRef.current) {
-            socketRef.current.on('code-change', ({ code }) => {
+        const socket = socketRef.current;
+        if (socket) {
+            socket.on('code-change', ({ code }) => {
                 if (code !== null) {
                     editorRef.current.setValue(code);
                 }
             })
         }
         return ()=> {
-            socketRef.current.off('code-change');
+            socket.off('code-change');
         }
-    }, [socketRef.current])
+    }, [socketRef])
     return (
         <div style={{ height: "800px" }}>
             <textarea id="realTimeEditor" style={{ height: "100%", width: "100%" }}></textarea>

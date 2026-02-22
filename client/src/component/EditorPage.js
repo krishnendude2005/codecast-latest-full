@@ -55,7 +55,7 @@ function EditorPage() {
       socketRef.current.off('joined');
       socketRef.current.off('disconnected');
     }
-  }, []);
+  }, [location.state?.username, navigate, roomId]);
 
 
 
