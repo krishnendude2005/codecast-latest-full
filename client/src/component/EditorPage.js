@@ -16,14 +16,15 @@ function EditorPage() {
   useEffect(() => {
     const init = async () => {
       socketRef.current = await initSocket();
-      socketRef.current.on('connect_error', (err) => handleError(err));
-      socketRef.current.on('connect_failed', (err) => handleError(err));
 
       const handleError = (e) => {
         console.log('socket error => ', e);
         toast.error("Socket Connection failed");
         navigate("/");
       }
+      socketRef.current.on('connect_error', (err) => handleError(err));
+      socketRef.current.on('connect_failed', (err) => handleError(err));
+
       socketRef.current.emit('join', {
         roomId,
         username: location.state?.username,
@@ -33,10 +34,14 @@ function EditorPage() {
           toast.success(`${username} joined`);
         }
         setClient(clients);
-        socketRef.current.emit('sync-code', {
-          code: codeRef.current,
-          socketId,
-        });
+        // Delay sync so the newly joined user's code-change listener
+        // has time to register before the initial code snapshot arrives
+        setTimeout(() => {
+          socketRef.current.emit('sync-code', {
+            code: codeRef.current,
+            socketId,
+          });
+        }, 300);
       });
       //disconnected
       socketRef.current.on('disconnected', ({ socketId, username }) => {
@@ -54,6 +59,8 @@ function EditorPage() {
       socketRef.current.disconnect();
       socketRef.current.off('joined');
       socketRef.current.off('disconnected');
+      socketRef.current.off('connect_error');
+      socketRef.current.off('connect_failed');
     }
   }, [location.state?.username, navigate, roomId]);
 

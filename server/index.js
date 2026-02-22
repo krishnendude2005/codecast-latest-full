@@ -8,9 +8,10 @@ const { Server } = require('socket.io');
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static('build'));
-app.use( (req, res, next)=> {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+const buildPath = path.join(__dirname, '..', 'client', 'build');
+app.use(express.static(buildPath));
+app.use((req, res, next) => {
+  res.sendFile(path.join(buildPath, 'index.html'));
 })
 
 const userSocketMap = {};
@@ -35,27 +36,27 @@ io.on('connection', (socket) => {
     const clients = getAllConnectedClients(roomId);
     //notify to all users that new user is joined
     clients.forEach(({ socketId }) => {
-       io.to(socketId).emit('joined', {
+      io.to(socketId).emit('joined', {
         clients,
         username,
         socketId: socket.id,
-       })
+      })
     })
   })
 
-  socket.on('code-change', ( {roomId, code})=> {
-    socket.in(roomId).emit('code-change', {code});
+  socket.on('code-change', ({ roomId, code }) => {
+    socket.in(roomId).emit('code-change', { code });
   })
-//if new user joins, we will show him the written code previously 
-socket.on('sync-code', ({socketId, code})=> {
-  io.to(socketId).emit('code-change', {code});
-})
+  //if new user joins, we will show him the written code previously 
+  socket.on('sync-code', ({ socketId, code }) => {
+    io.to(socketId).emit('code-change', { code });
+  })
 
 
 
-  socket.on('disconnecting', ()=> {
+  socket.on('disconnecting', () => {
     const rooms = [...socket.rooms];
-    rooms.forEach( (roomId)=> {
+    rooms.forEach((roomId) => {
       socket.in(roomId).emit('disconnected', {
         socketId: socket.id,
         username: userSocketMap[socket.id],
